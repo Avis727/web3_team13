@@ -3,11 +3,12 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Web3Provider } from "@/components/web3-provider";
 import { WalletConnector } from "@/components/wallet-connector";
+import { DnzdBalance } from "@/components/dnzd-balance";
 import { Navbar } from "@/components/navbar";
 
 export const metadata = {
-  title: "Connect Wallet | WDCC x Web3UOA",
-  description: "Connect your MetaMask or other Web3 wallet to get started",
+  title: "Wallet | L2Earn",
+  description: "Connect a wallet, view your dNZD balance, and see your earnings history.",
 };
 
 export default async function WalletPage() {
@@ -30,15 +31,18 @@ export default async function WalletPage() {
           <div className="mx-auto max-w-2xl">
             <div className="mb-8 text-center">
               <h1 className="mb-3 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-                Connect Your Wallet
+                Your Wallet
               </h1>
               <p className="text-muted-foreground">
-                Connect your MetaMask or other Web3 wallet to interact with decentralized
-                applications and explore the world of Web3.
+                Connect MetaMask, Coinbase Wallet, or any WalletConnect-supported wallet. We use
+                your address as your identity for dNZD payouts.
               </p>
             </div>
 
-            <WalletConnector />
+            <div className="flex flex-col items-center gap-6">
+              <WalletConnector />
+              <DnzdBalance />
+            </div>
 
             <div className="mt-12 rounded-lg border border-border bg-card p-6">
               <h2 className="mb-4 text-lg font-semibold text-card-foreground">

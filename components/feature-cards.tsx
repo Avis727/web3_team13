@@ -1,64 +1,61 @@
-import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
+import { GraduationCap, Coins, Bot } from "lucide-react";
 
 const features = [
   {
-    title: "WEB3",
+    title: "AI Tutor",
+    icon: GraduationCap,
     description:
-      "Discover the power of decentralized applications and blockchain technology. Learn how smart contracts and distributed ledgers are revolutionizing the way we interact online.",
-    image: "/images/web3-feature.jpg",
+      "Every campaign generates a personalised quiz on the fly. The AI tutor explains wrong answers and adapts to what you actually learned — not a clickthrough.",
   },
   {
-    title: "COMMUNITY",
+    title: "Stablecoin Payouts",
+    icon: Coins,
     description:
-      "Join a vibrant community of developers, designers, and innovators. Collaborate on projects, share knowledge, and build lasting connections with like-minded individuals.",
-    image: "/images/community-feature.jpg",
+      "Pass the quiz and dNZD lands in your wallet. Built on NewMoney's NZ-regulated, 1:1 reserve-backed Australasian stablecoin infrastructure.",
   },
   {
-    title: "FUTURE",
+    title: "Agent-Readable",
+    icon: Bot,
     description:
-      "Shape the future of technology with cutting-edge tools and frameworks. From DeFi to NFTs, explore the endless possibilities of Web3 development.",
-    image: "/images/future-feature.jpg",
+      "In 2126, the buyer is an AI agent. Every L2Earn campaign exposes a machine-readable feed so agents can index brands before recommending them.",
   },
 ];
 
 export function FeatureCards() {
   return (
-    <section id="about" className="bg-background py-16 md:py-24">
+    <section id="about" className="py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-            What We Offer
+            One campaign, two audiences.
           </h2>
           <p className="mx-auto max-w-2xl text-muted-foreground">
-            Explore the pillars of our community and discover what makes WDCC x Web3UOA unique.
+            L2Earn collapses customer education and agent indexing into a single rail —
+            settled in dNZD.
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
-            <Card
-              key={feature.title}
-              className="group overflow-hidden border-0 bg-card shadow-lg transition-all hover:shadow-xl"
-            >
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
-                  src={feature.image}
-                  alt={feature.title}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
-              <CardContent className="p-6">
-                <h3 className="mb-3 text-xl font-bold tracking-wide text-foreground">
-                  {feature.title}
-                </h3>
-                <p className="leading-relaxed text-muted-foreground">
-                  {feature.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="grid gap-6 md:grid-cols-3">
+          {features.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <Card
+                key={feature.title}
+                className="group border-border/60 bg-card/60 backdrop-blur transition-all hover:border-primary/50 hover:bg-card"
+              >
+                <CardContent className="p-6">
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="mb-2 text-xl font-bold tracking-tight text-foreground">
+                    {feature.title}
+                  </h3>
+                  <p className="leading-relaxed text-muted-foreground">{feature.description}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -7,9 +7,10 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.app',
+  title: 'L2Earn — Learn-to-Earn for the Great Handover',
+  description:
+    'Watch a short video, pass an AI-tutored quiz, get paid in dNZD. One campaign, two audiences — humans learn, agents index.',
+  generator: 'L2Earn',
   icons: {
     icon: [
       {
@@ -35,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body className="font-sans antialiased">
         {children}
         <Analytics />
