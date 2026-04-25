@@ -1,16 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useAccount } from "wagmi";
 import { Web3Provider } from "@/components/web3-provider";
 import { WalletConnector } from "@/components/wallet-connector";
 import { DnzdBalance } from "@/components/dnzd-balance";
+import { CrossChainBridge } from "@/components/cross-chain-bridge";
+import { AttestationsDisplay } from "@/components/attestations-display";
 import { Navbar } from "@/components/navbar";
 
-export const metadata = {
-  title: "Wallet | L2Earn",
-  description: "Connect a wallet, view your dNZD balance, and see your earnings history.",
-};
-
 export default function WalletPage() {
+  const { address, isConnected } = useAccount();
   return (
     <Web3Provider>
       <Navbar />
@@ -34,9 +35,17 @@ export default function WalletPage() {
               </p>
             </div>
 
-            <div className="flex flex-col items-center gap-6">
+            <div className="flex flex-col items-center gap-6 w-full">
               <WalletConnector />
-              <DnzdBalance />
+              {isConnected && address && (
+                <>
+                  <DnzdBalance />
+                  <CrossChainBridge />
+                  <div className="w-full">
+                    <AttestationsDisplay address={address} />
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="mt-12 rounded-lg border border-border bg-card p-6">

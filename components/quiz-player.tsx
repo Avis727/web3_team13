@@ -57,6 +57,9 @@ export function QuizPlayer({ campaignId, rewardCents }: Props) {
   const [onChainMessage, setOnChainMessage] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [isSendingOnChain, setIsSendingOnChain] = useState(false);
+  const [attestationId, setAttestationId] = useState<string | null>(null);
+  const [isCreatingAttestation, setIsCreatingAttestation] = useState(false);
+  const [quizScore, setQuizScore] = useState<number>(0);
 
   const reward = (rewardCents / 100).toFixed(2);
 
@@ -99,6 +102,7 @@ export function QuizPlayer({ campaignId, rewardCents }: Props) {
       });
       const score = feedback.filter((item) => item.correct).length;
       const passed = score >= 2;
+      setQuizScore(score);
       setState({
         status: "graded",
         passed,
@@ -108,6 +112,36 @@ export function QuizPlayer({ campaignId, rewardCents }: Props) {
       });
     } catch (e) {
       setState({ status: "error", message: (e as Error).message });
+    }
+  }
+
+  async function createAttestation(score: number) {
+    if (!address) return;
+    setIsCreatingAttestation(true);
+    try {
+      const res = await fetch("/api/attestations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userAddress: address,
+          campaignId,
+          score,
+        }),
+      });
+
+      const payload = (await res.json()) as {
+        ok?: boolean;
+        attestationId?: string;
+        url?: string;
+      };
+
+      if (res.ok && payload.attestationId) {
+        setAttestationId(payload.attestationId);
+      }
+    } catch (error) {
+      console.error("Failed to create attestation:", error);
+    } finally {
+      setIsCreatingAttestation(false);
     }
   }
 
@@ -150,6 +184,9 @@ export function QuizPlayer({ campaignId, rewardCents }: Props) {
         payload.message ??
           `${NZD_SEND_AMOUNT} dNZD has been sent to your connected wallet. Open MetaMask to view the transfer.`,
       );
+
+      // Create attestation after successful payout
+      await createAttestation(quizScore);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       setOnChainMessage(`On-chain transfer failed: ${message}`);
@@ -358,6 +395,26 @@ export function QuizPlayer({ campaignId, rewardCents }: Props) {
                 )}
               </p>
             ) : null}
+            {isCreatingAttestation && (
+              <p className="mt-3 text-xs text-muted-foreground flex items-center gap-2">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Creating course attestation...
+              </p>
+            )}
+            {attestationId && (
+              <div className="mt-3 rounded border border-primary/30 bg-primary/5 p-2">
+                <p className="text-xs font-semibold text-primary flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Attestation Created
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground break-all">
+                  ID: {attestationId}
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  📜 Your course completion is now on-chain and shareable!
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <Button size="lg" onClick={startQuiz} className="w-full gap-2 font-semibold">
