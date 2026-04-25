@@ -2,8 +2,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Coins } from "lucide-react";
 import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
-import { Web3Provider } from "@/components/web3-provider";
 import { QuizPlayer } from "@/components/quiz-player";
 import { Badge } from "@/components/ui/badge";
 import { CAMPAIGNS, getCampaign } from "@/lib/campaigns";
@@ -36,7 +34,7 @@ export default async function CampaignDetailPage({
     .filter(Boolean);
 
   return (
-    <Web3Provider>
+    <>
       <Navbar />
       <main className="min-h-[calc(100vh-72px)]">
         <div className="container mx-auto max-w-4xl px-4 py-10 md:px-6 md:py-14">
@@ -96,7 +94,6 @@ export default async function CampaignDetailPage({
           <QuizPlayer campaignId={campaign.id} rewardCents={campaign.rewardCents} />
         </div>
       </main>
-      <Footer />
-    </Web3Provider>
+    </>
   );
 }

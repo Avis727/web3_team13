@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useAccount } from "wagmi";
-import { Web3Provider } from "@/components/web3-provider";
 import { WalletConnector } from "@/components/wallet-connector";
 import { DnzdBalance } from "@/components/dnzd-balance";
 import { CrossChainBridge } from "@/components/cross-chain-bridge";
@@ -13,7 +12,7 @@ import { Navbar } from "@/components/navbar";
 export default function WalletPage() {
   const { address, isConnected } = useAccount();
   return (
-    <Web3Provider>
+    <>
       <Navbar />
       <main className="min-h-[calc(100vh-72px)] bg-gradient-to-b from-primary/5 via-background to-background">
         <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
@@ -98,6 +97,6 @@ export default function WalletPage() {
           </div>
         </div>
       </main>
-    </Web3Provider>
+    </>
   );
 }

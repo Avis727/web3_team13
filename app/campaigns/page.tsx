@@ -1,5 +1,4 @@
 import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
 import { CampaignCard } from "@/components/campaign-card";
 import { CAMPAIGNS } from "@/lib/campaigns";
 
@@ -34,7 +33,6 @@ export default function CampaignsPage() {
           </div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

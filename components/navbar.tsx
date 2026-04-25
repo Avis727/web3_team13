@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Menu, X, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,10 +24,10 @@ export function Navbar() {
       <nav className="container mx-auto flex items-center justify-between px-4 py-4 md:px-6">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
-            <span className="text-sm font-bold text-foreground">L2</span>
+            <Image src="/l2earn-icon.svg" alt="L2Earn" width={40} height={40} className="h-full w-full object-contain" unoptimized priority />
           </span>
           <span className="hidden sm:flex h-12 items-center rounded-md bg-white px-3 py-1.5 shadow-sm">
-            <span className="text-sm font-bold text-foreground">L2Earn</span>
+            <Image src="/l2earn-logo-text.svg" alt="L2Earn" width={200} height={40} className="h-full w-auto object-contain" unoptimized priority />
           </span>
         </Link>
 
