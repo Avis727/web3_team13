@@ -12,6 +12,8 @@ import {
 } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EnsDisplay } from "@/components/ens-display";
+import { useEns } from "@/lib/useEns";
 import { Wallet, Copy, ExternalLink, LogOut } from "lucide-react";
 
 const METAMASK_DOWNLOAD_URL = "https://metamask.io/download/";
@@ -41,6 +43,7 @@ export function WalletConnector() {
   const [isRequesting, setIsRequesting] = useState(false);
   const connectLockRef = useRef(false);
   const { address, isConnected, status } = useAccount();
+  const { ensName, ensAvatar } = useEns(address);
   const chainId = useChainId();
   const { connectAsync, connectors, error: connectError, isPending: isConnecting } = useConnect();
   const { disconnect } = useDisconnect();
@@ -237,24 +240,44 @@ export function WalletConnector() {
   return (
     <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur-sm">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
+        <div className="flex items-center gap-4">
+          {/* Avatar or pulse dot */}
+          {ensAvatar ? (
+            <img
+              src={ensAvatar}
+              alt="ENS Avatar"
+              className="h-12 w-12 rounded-full ring-2 ring-primary/30"
+            />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
               <div className="h-3 w-3 animate-pulse rounded-full bg-emerald-500" />
             </div>
-            <div>
-              <CardTitle className="text-lg">Connected</CardTitle>
-              <p className="text-xs text-muted-foreground">MetaMask</p>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-lg">
+                {ensName ?? "Connected"}
+              </CardTitle>
+              {ensName && (
+                <span className="inline-flex items-center rounded-full bg-indigo-500/15 border border-indigo-400/30 px-2 py-0.5 text-[10px] font-bold text-indigo-400">
+                  ENS
+                </span>
+              )}
             </div>
+            <p className="text-xs text-muted-foreground truncate">
+              {address ? truncateAddress(address) : ""} · MetaMask
+            </p>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="rounded-lg bg-muted/50 p-4">
-          <p className="mb-1 text-xs font-medium text-muted-foreground">Wallet Address</p>
-          <div className="flex items-start justify-between gap-3">
-            <code className="text-sm font-mono">{address ? truncateAddress(address) : ""}</code>
-            <div className="flex gap-1">
+          <p className="mb-2 text-xs font-medium text-muted-foreground">Wallet Address</p>
+          <div className="flex items-center justify-between gap-3">
+            <code className="text-sm font-mono break-all text-foreground">
+              {address ? truncateAddress(address) : ""}
+            </code>
+            <div className="flex gap-1 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -269,6 +292,12 @@ export function WalletConnector() {
               </Button>
             </div>
           </div>
+          {ensName && (
+            <div className="mt-3 flex items-center gap-2 rounded-md border border-indigo-400/20 bg-indigo-500/5 px-3 py-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400">ENS</span>
+              <span className="text-sm font-semibold text-indigo-300">{ensName}</span>
+            </div>
+          )}
         </div>
 
         <div className="rounded-lg bg-muted/50 p-4">

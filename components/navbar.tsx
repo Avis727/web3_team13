@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EnsDisplay } from "@/components/ens-display";
@@ -13,11 +13,47 @@ const navLinks = [
   { href: "/", label: "HOME" },
   { href: "/campaigns", label: "CAMPAIGNS" },
   { href: "/leaderboard", label: "LEADERBOARD" },
+  { href: "/how-it-works", label: "HOW IT WORKS" },
 ];
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { address: walletAddress } = useAccount();
+
+  useEffect(() => setMounted(true), []);
+
+  const connectButton = (
+    <button type="button" onClick={() => modal.open()}>
+      {mounted && walletAddress ? (
+        <EnsDisplay address={walletAddress} showAvatar showBadge className="flex-row" />
+      ) : (
+        <>
+          <Wallet className="h-4 w-4" />
+          Connect
+        </>
+      )}
+    </button>
+  );
+
+  const connectButtonMobile = (
+    <button
+      type="button"
+      onClick={() => {
+        setMobileMenuOpen(false);
+        modal.open();
+      }}
+    >
+      {mounted && walletAddress ? (
+        <EnsDisplay address={walletAddress} showAvatar showBadge className="flex-row" />
+      ) : (
+        <>
+          <Wallet className="h-4 w-4" />
+          Connect Wallet
+        </>
+      )}
+    </button>
+  );
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-primary/10 bg-gradient-to-r from-background via-background to-background/95 backdrop-blur-xl">
@@ -26,8 +62,8 @@ export function Navbar() {
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
             <Image src="/l2earn-icon.svg" alt="L2Earn" width={40} height={40} className="h-full w-full object-contain" unoptimized priority />
           </span>
-          <span className="hidden sm:flex h-12 items-center rounded-md bg-white px-3 py-1.5 shadow-sm">
-            <Image src="/l2earn-logo-text.svg" alt="L2Earn" width={200} height={40} className="h-full w-auto object-contain" unoptimized priority />
+          <span className="hidden sm:block text-2xl font-black tracking-tight" style={{ color: '#a78bfa' }}>
+            L<span style={{ color: '#F5C518' }}>2</span>EARN
           </span>
         </Link>
 
@@ -47,16 +83,7 @@ export function Navbar() {
             size="sm"
             className="gap-2 font-semibold bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl"
           >
-            <button type="button" onClick={() => modal.open()}>
-              {walletAddress ? (
-                <EnsDisplay address={walletAddress} showAvatar className="flex-row" />
-              ) : (
-                <>
-                  <Wallet className="h-4 w-4" />
-                  Connect
-                </>
-              )}
-            </button>
+            {connectButton}
           </Button>
         </div>
 
@@ -87,22 +114,7 @@ export function Navbar() {
               size="sm"
               className="w-full gap-2 font-semibold bg-primary hover:bg-primary/90 transition-all duration-300"
             >
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  modal.open();
-                }}
-              >
-                {walletAddress ? (
-                  <EnsDisplay address={walletAddress} showAvatar className="flex-row" />
-                ) : (
-                  <>
-                    <Wallet className="h-4 w-4" />
-                    Connect Wallet
-                  </>
-                )}
-              </button>
+              {connectButtonMobile}
             </Button>
           </div>
         </div>

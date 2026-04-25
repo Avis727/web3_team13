@@ -8,9 +8,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getCampaign } from "@/lib/campaigns";
-import { CheckCircle2, XCircle, Sparkles, Wallet, Loader2, Coins, ExternalLink, Trophy } from "lucide-react";
-import Link from "next/link";
+import { modal } from "@/lib/appkit";
+import { CheckCircle2, XCircle, Sparkles, Wallet, Loader2, ExternalLink, Trophy } from "lucide-react";
 import { EnsDisplay } from "@/components/ens-display";
+import { QuizProgress } from "@/components/quiz-progress";
 
 const NZD_SEND_AMOUNT = "5";
 
@@ -243,40 +244,10 @@ export function QuizPlayer({ campaignId, rewardCents }: Props) {
               We need somewhere to send your {reward} dNZD payout when you pass.
             </p>
           </div>
-          <Link href="/wallet">
-            <Button size="lg" className="gap-2 font-semibold">
-              <Wallet className="h-4 w-4" />
-              Connect Wallet
-            </Button>
-          </Link>
-          <div className="w-full rounded-lg border border-border/50 bg-muted/30 p-4">
-            <p className="text-sm font-semibold">On-chain payout</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Sends 5 NZD token to your connected wallet:
-            </p>
-            {address ? <EnsDisplay address={address} truncate={true} showAvatar={false} /> : <p className="text-xs text-muted-foreground">Connect wallet first</p>}
-            <Button size="sm" className="mt-3 w-full font-semibold" onClick={sendRealNzdOnChain} disabled={isSendingOnChain}>
-              {isSendingOnChain ? "Sending from master wallet..." : "Complete Campaign (+5 NZD)"}
-            </Button>
-            {onChainMessage ? <p className="mt-2 text-xs text-muted-foreground">{onChainMessage}</p> : null}
-            {txHash ? (
-              <p className="mt-1 break-all text-[11px] text-muted-foreground">
-                Tx:{" "}
-                {EXPLORER_TX_BASE[chainId] ? (
-                  <a
-                    href={`${EXPLORER_TX_BASE[chainId]}${txHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:no-underline"
-                  >
-                    {txHash}
-                  </a>
-                ) : (
-                  txHash
-                )}
-              </p>
-            ) : null}
-          </div>
+          <Button size="lg" className="gap-2 font-semibold" onClick={() => modal.open()}>
+            <Wallet className="h-4 w-4" />
+            Connect Wallet
+          </Button>
         </CardContent>
       </Card>
     );
@@ -293,10 +264,10 @@ export function QuizPlayer({ campaignId, rewardCents }: Props) {
                 <p className="font-semibold text-primary">Quiz Completed ✓</p>
               </div>
               <p className="text-sm text-muted-foreground">
-                You previously scored {previousScore}/3 on this quiz.
+                You scored {previousScore}/3 on this quiz.
               </p>
               <p className="text-xs text-muted-foreground mt-2">
-                You can retake this quiz to improve your score and earn more rewards.
+                This campaign has been completed. You've already earned your reward!
               </p>
             </div>
           )}
@@ -305,15 +276,26 @@ export function QuizPlayer({ campaignId, rewardCents }: Props) {
           </div>
           <div>
             <h3 className="text-xl font-bold">
-              {isCompleted ? "Ready for round two?" : "Ready when you are."}
+              {isCompleted ? "Campaign Complete" : "Ready when you are."}
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Read the campaign brief, then take the quiz. Pass 2 of 3 to earn {reward} dNZD.
+              {isCompleted
+                ? "Move on to other campaigns to earn more dNZD."
+                : "Read the campaign brief, then take the quiz. Pass 2 of 3 to earn " + reward + " dNZD."}
             </p>
           </div>
-          <Button size="lg" onClick={startQuiz} className="gap-2 font-semibold" disabled={isLoadingCompletion}>
+          <Button
+            size="lg"
+            onClick={startQuiz}
+            className="gap-2 font-semibold"
+            disabled={isLoadingCompletion || isCompleted}
+          >
             <Sparkles className="h-4 w-4" />
-            {isLoadingCompletion ? "Loading..." : "Start AI Quiz"}
+            {isLoadingCompletion
+              ? "Loading..."
+              : isCompleted
+              ? "Already Completed"
+              : "Start AI Quiz"}
           </Button>
         </CardContent>
       </Card>
@@ -334,9 +316,17 @@ export function QuizPlayer({ campaignId, rewardCents }: Props) {
   if (state.status === "ready" || state.status === "grading") {
     const allAnswered =
       state.status === "ready" && state.questions.every((q) => answers[q.id] !== undefined);
+    const answeredCount = Object.keys(answers).length;
 
     return (
       <div className="space-y-4">
+        {state.status === "ready" && (
+          <QuizProgress
+            currentQuestion={1}
+            totalQuestions={state.questions.length}
+            answeredCount={answeredCount}
+          />
+        )}
         {state.status === "ready" &&
           state.questions.map((q, i) => (
             <Card key={q.id} className="border-border/60 bg-card/60">

@@ -1,13 +1,12 @@
-import { cookieStorage, createStorage } from "wagmi";
-import { mainnet, arbitrum, polygon, optimism, base, baseSepolia, avalanche } from "wagmi/chains";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
+import { mainnet, arbitrum, polygon, optimism, base, baseSepolia, avalanche } from "wagmi/chains";
 
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!;
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
-const networks = [base, baseSepolia, mainnet, arbitrum, polygon, optimism, avalanche];
+export const networks = [base, baseSepolia, mainnet, arbitrum, polygon, optimism, avalanche];
+
 export const wagmiAdapter = new WagmiAdapter({
-  storage: createStorage({ storage: cookieStorage }) as any,
-  ssr: true,
+  ssr: false,
   projectId,
   networks,
 });

@@ -134,3 +134,75 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes loadingPulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@layer components {
+  /* Page entrance */
+  .page-enter {
+    animation: slideUpFade 0.35s ease-out both;
+  }
+
+  /* Loading animations */
+  .loading-pulse {
+    animation: loadingPulse 1.8s ease-in-out infinite;
+  }
+
+  .loading-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      transparent 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 1.8s infinite linear;
+  }
+
+  /* Native buttons outside of the shadcn Button component (e.g. bare <button> elements) */
+  button:not([data-slot="button"]) {
+    cursor: pointer;
+  }
+
+  button:not([data-slot="button"]):disabled {
+    cursor: not-allowed;
+  }
+
+  /* Cards — subtle lift on hover, scoped to the .card class */
+  .card {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -6px rgba(245, 197, 24, 0.08),
+                0 4px 8px -4px rgba(245, 197, 24, 0.04);
+  }
+}

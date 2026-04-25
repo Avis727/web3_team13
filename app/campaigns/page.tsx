@@ -1,5 +1,5 @@
 import { Navbar } from "@/components/navbar";
-import { CampaignCard } from "@/components/campaign-card";
+import { CampaignsGrid } from "@/components/campaigns-grid";
 import { CAMPAIGNS } from "@/lib/campaigns";
 
 export const metadata = {
@@ -18,19 +18,15 @@ export default function CampaignsPage() {
               Campaigns
             </p>
             <h1 className="mb-4 text-4xl font-black tracking-tight text-foreground md:text-5xl">
-              Pick a brand. Pass the quiz. Get paid.
+              Pick a level. Pass the quiz. Get paid.
             </h1>
             <p className="text-lg text-muted-foreground">
-              Each campaign rewards you in dNZD when you pass an AI-tutored quiz. Connect a wallet
-              before you start so we know where to send the payout.
+              11 campaigns across Easy, Medium, and Hard. Each rewards you in dNZD when you pass
+              an AI-tutored quiz. Connect a wallet first so we know where to send the payout.
             </p>
           </header>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {CAMPAIGNS.map((c) => (
-              <CampaignCard key={c.id} campaign={c} />
-            ))}
-          </div>
+          <CampaignsGrid campaigns={CAMPAIGNS} />
         </div>
       </main>
     </>
