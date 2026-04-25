@@ -1,129 +1,135 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import type { GeneratedQuestion } from "@/lib/anthropic";
+import fs from 'fs';
+import path from 'path';
 
-/**
- * File-backed dNZD ledger. Mock for the hackathon — no chain involved.
- * Balances are tracked in cents to avoid float drift. 500 = 5.00 dNZD.
- */
+const STORE_PATH = path.join(process.cwd(), 'data', 'store.json');
 
-export type Tx = {
-  campaignId: string;
-  amountCents: number;
-  ts: number;
-};
+export interface UserData {
+  address: string;
+  balance: number; // in dNZD cents
+  completedCampaigns: string[]; // campaign IDs
+  txs: Array<{
+    campaignId: string;
+    amount: number;
+    timestamp: number;
+  }>;
+  streak: number;
+  lastCompletionDate: number | null;
+  badges: string[];
+}
 
-type StoreShape = {
-  // address (lowercased) -> balance in cents
-  balances: Record<string, number>;
-  // address (lowercased) -> tx history
-  txs: Record<string, Tx[]>;
-  // quizId -> generated quiz payload with expiry timestamp
-  quizSessions: Record<string, { questions: GeneratedQuestion[]; ts: number }>;
-};
+export interface StoreData {
+  users: Record<string, UserData>;
+}
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "store.json");
-
-let cache: StoreShape | null = null;
-let writeChain: Promise<void> = Promise.resolve();
-
-async function load(): Promise<StoreShape> {
-  if (cache) return cache;
-  try {
-    const raw = await fs.readFile(DATA_FILE, "utf8");
-    const parsed = JSON.parse(raw) as Partial<StoreShape>;
-    cache = {
-      balances: parsed.balances ?? {},
-      txs: parsed.txs ?? {},
-      quizSessions: parsed.quizSessions ?? {},
-    };
-  } catch {
-    cache = { balances: {}, txs: {}, quizSessions: {} };
+function ensureStoreExists(): StoreData {
+  const dir = path.dirname(STORE_PATH);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
-  return cache;
+
+  if (!fs.existsSync(STORE_PATH)) {
+    const initialData: StoreData = { users: {} };
+    fs.writeFileSync(STORE_PATH, JSON.stringify(initialData, null, 2));
+    return initialData;
+  }
+
+  const data = fs.readFileSync(STORE_PATH, 'utf-8');
+  return JSON.parse(data) as StoreData;
 }
 
-async function persist(): Promise<void> {
-  if (!cache) return;
-  const snapshot = JSON.stringify(cache, null, 2);
-  // Serialise writes so concurrent route handlers don't race.
-  writeChain = writeChain.then(async () => {
-    await fs.mkdir(DATA_DIR, { recursive: true });
-    await fs.writeFile(DATA_FILE, snapshot, "utf8");
-  });
-  await writeChain;
+function saveStore(data: StoreData): void {
+  const dir = path.dirname(STORE_PATH);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  fs.writeFileSync(STORE_PATH, JSON.stringify(data, null, 2));
 }
 
-const norm = (addr: string) => addr.trim().toLowerCase();
-
-export async function getBalanceCents(address: string): Promise<number> {
-  const s = await load();
-  return s.balances[norm(address)] ?? 0;
+export function getUser(address: string): UserData {
+  const store = ensureStoreExists();
+  if (!store.users[address]) {
+    store.users[address] = {
+      address,
+      balance: 0,
+      completedCampaigns: [],
+      txs: [],
+      streak: 0,
+      lastCompletionDate: null,
+      badges: [],
+    };
+    saveStore(store);
+  }
+  return store.users[address];
 }
 
-export async function listTxs(address: string): Promise<Tx[]> {
-  const s = await load();
-  return [...(s.txs[norm(address)] ?? [])].sort((a, b) => b.ts - a.ts);
+export function getBalance(address: string): number {
+  return getUser(address).balance;
 }
 
-export async function hasClaimed(address: string, campaignId: string): Promise<boolean> {
-  const txs = await listTxs(address);
-  return txs.some((t) => t.campaignId === campaignId);
-}
-
-export async function credit(
+export function creditUser(
   address: string,
   campaignId: string,
-  amountCents: number,
-): Promise<{ ok: true; balanceCents: number } | { ok: false; reason: string }> {
-  if (!/^0x[a-fA-F0-9]{40}$/.test(address.trim())) {
-    return { ok: false, reason: "invalid_address" };
+  amount: number
+): boolean {
+  const store = ensureStoreExists();
+  const user = store.users[address] || getUser(address);
+
+  // Check if already completed
+  if (user.completedCampaigns.includes(campaignId)) {
+    return false;
   }
-  if (!Number.isInteger(amountCents) || amountCents <= 0) {
-    return { ok: false, reason: "invalid_amount" };
+
+  user.balance += amount;
+  user.completedCampaigns.push(campaignId);
+  user.txs.push({
+    campaignId,
+    amount,
+    timestamp: Date.now(),
+  });
+
+  // Update streak
+  const today = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
+  const lastDate = user.lastCompletionDate
+    ? Math.floor(user.lastCompletionDate / (1000 * 60 * 60 * 24))
+    : today - 1;
+
+  if (today === lastDate + 1) {
+    user.streak++;
+  } else if (today !== lastDate) {
+    user.streak = 1;
   }
 
-  const s = await load();
-  const key = norm(address);
+  user.lastCompletionDate = Date.now();
 
-  const already = (s.txs[key] ?? []).some((t) => t.campaignId === campaignId);
-  if (already) return { ok: false, reason: "already_claimed" };
+  // Award badges
+  const newBadges = [];
+  if (user.streak === 5 && !user.badges.includes('streak-5')) {
+    newBadges.push('streak-5');
+  }
+  if (user.completedCampaigns.length === 1 && !user.badges.includes('first-campaign')) {
+    newBadges.push('first-campaign');
+  }
+  if (
+    user.completedCampaigns.length === 3 &&
+    !user.badges.includes('quiz-master')
+  ) {
+    newBadges.push('quiz-master');
+  }
 
-  s.balances[key] = (s.balances[key] ?? 0) + amountCents;
-  s.txs[key] = [...(s.txs[key] ?? []), { campaignId, amountCents, ts: Date.now() }];
-  await persist();
+  user.badges = [...new Set([...user.badges, ...newBadges])];
 
-  return { ok: true, balanceCents: s.balances[key] };
+  store.users[address] = user;
+  saveStore(store);
+  return true;
 }
 
-export const formatDnzd = (cents: number): string => (cents / 100).toFixed(2);
-
-const QUIZ_TTL_MS = 30 * 60 * 1000;
-
-export async function rememberQuizSession(
-  quizId: string,
-  questions: GeneratedQuestion[],
-): Promise<void> {
-  const s = await load();
-  const cutoff = Date.now() - QUIZ_TTL_MS;
-
-  for (const [key, value] of Object.entries(s.quizSessions)) {
-    if (value.ts < cutoff) delete s.quizSessions[key];
-  }
-
-  s.quizSessions[quizId] = { questions, ts: Date.now() };
-  await persist();
+export function getLeaderboard(limit: number = 10): UserData[] {
+  const store = ensureStoreExists();
+  return Object.values(store.users)
+    .sort((a, b) => b.balance - a.balance)
+    .slice(0, limit);
 }
 
-export async function recallQuizSession(quizId: string): Promise<GeneratedQuestion[] | null> {
-  const s = await load();
-  const hit = s.quizSessions[quizId];
-  if (!hit) return null;
-  if (Date.now() - hit.ts > QUIZ_TTL_MS) {
-    delete s.quizSessions[quizId];
-    await persist();
-    return null;
-  }
-  return hit.questions;
+export function listTxs(address: string): Array<any> {
+  return getUser(address).txs;
 }

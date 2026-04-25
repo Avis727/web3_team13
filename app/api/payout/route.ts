@@ -3,6 +3,7 @@ import { createPublicClient, createWalletClient, erc20Abi, formatUnits, http, pa
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 import { getClaim, markClaim } from "@/lib/payout-claims";
+import { creditUser } from "@/lib/store";
 
 export const runtime = "nodejs";
 
@@ -151,6 +152,10 @@ export async function POST(req: Request) {
     }
 
     await markClaim(campaignId, userAddress, txHash);
+
+    // Credit to store (in dNZD cents)
+    const amountInCents = Math.round(Number(payoutAmount) * 100);
+    creditUser(userAddress.toLowerCase(), campaignId, amountInCents);
 
     return NextResponse.json({
       ok: true,

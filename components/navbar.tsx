@@ -11,6 +11,7 @@ import { useAccount } from "wagmi";
 const navLinks = [
   { href: "/", label: "HOME" },
   { href: "/campaigns", label: "CAMPAIGNS" },
+  { href: "/leaderboard", label: "LEADERBOARD" },
 ];
 
 export function Navbar() {
