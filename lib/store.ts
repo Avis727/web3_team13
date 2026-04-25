@@ -1,7 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 
-const STORE_PATH = path.join(process.cwd(), 'data', 'store.json');
+// Vercel's filesystem is read-only except /tmp; use /tmp when running on Vercel
+const DATA_DIR = process.env.VERCEL
+  ? '/tmp'
+  : path.join(process.cwd(), 'data');
+const STORE_PATH = path.join(DATA_DIR, 'store.json');
 
 export interface UserData {
   address: string;
@@ -22,27 +26,33 @@ export interface StoreData {
 }
 
 function ensureStoreExists(): StoreData {
-  const dir = path.dirname(STORE_PATH);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  try {
+    const dir = path.dirname(STORE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    if (!fs.existsSync(STORE_PATH)) {
+      const initialData: StoreData = { users: {} };
+      fs.writeFileSync(STORE_PATH, JSON.stringify(initialData, null, 2));
+      return initialData;
+    }
+    const data = fs.readFileSync(STORE_PATH, 'utf-8');
+    return JSON.parse(data) as StoreData;
+  } catch {
+    return { users: {} };
   }
-
-  if (!fs.existsSync(STORE_PATH)) {
-    const initialData: StoreData = { users: {} };
-    fs.writeFileSync(STORE_PATH, JSON.stringify(initialData, null, 2));
-    return initialData;
-  }
-
-  const data = fs.readFileSync(STORE_PATH, 'utf-8');
-  return JSON.parse(data) as StoreData;
 }
 
 function saveStore(data: StoreData): void {
-  const dir = path.dirname(STORE_PATH);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  try {
+    const dir = path.dirname(STORE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(STORE_PATH, JSON.stringify(data, null, 2));
+  } catch {
+    // silently fail on read-only filesystems
   }
-  fs.writeFileSync(STORE_PATH, JSON.stringify(data, null, 2));
 }
 
 export function getUser(address: string): UserData {
