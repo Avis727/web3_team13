@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Flame, Zap, Crown } from "lucide-react";
 import { BADGES } from "@/lib/badges";
+import { EnsDisplay } from "@/components/ens-display";
 
 export interface LeaderboardUser {
   address: string;
@@ -54,9 +55,11 @@ export function Leaderboard() {
                 <div className="text-3xl">
                   {idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉"}
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground">#{idx + 1}</p>
-                  <p className="font-mono text-sm font-semibold">{user.address.slice(0, 6)}...{user.address.slice(-4)}</p>
+                  <div className="truncate">
+                    <EnsDisplay address={user.address} showAvatar truncate className="flex-row" />
+                  </div>
                 </div>
               </div>
               <div className="space-y-2">
@@ -81,10 +84,10 @@ export function Leaderboard() {
           <div className="space-y-2">
             {users.map((user, idx) => (
               <div key={user.address} className="flex items-center justify-between p-3 rounded-lg border border-border/30 hover:bg-muted/30 transition">
-                <div className="flex items-center gap-3">
-                  <span className="font-semibold text-primary w-8">#{idx + 1}</span>
-                  <div>
-                    <p className="font-mono text-sm">{user.address.slice(0, 6)}...{user.address.slice(-4)}</p>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <span className="font-semibold text-primary w-8 flex-shrink-0">#{idx + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <EnsDisplay address={user.address} showAvatar={false} truncate className="flex-row" />
                     <div className="flex gap-1 mt-1 flex-wrap">
                       {user.badges.map((badgeId) => {
                         const badge = BADGES[badgeId as keyof typeof BADGES];
@@ -97,10 +100,10 @@ export function Leaderboard() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-shrink-0">
                   <p className="font-bold">{(user.balance / 100).toFixed(2)} dNZD</p>
                   {user.streak > 0 && (
-                    <p className="text-xs text-orange-500 flex items-center gap-1">
+                    <p className="text-xs text-orange-500 flex items-center gap-1 justify-end">
                       <Flame className="h-3 w-3" /> {user.streak}
                     </p>
                   )}
