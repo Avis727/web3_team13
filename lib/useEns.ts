@@ -4,7 +4,9 @@ import { mainnet } from "viem/chains";
 
 const publicClient = createPublicClient({
   chain: mainnet,
-  transport: http("https://eth.publicrpc.com"),
+  transport: http(
+    process.env.NEXT_PUBLIC_RPC_URL || "https://eth-mainnet.public.blastapi.io"
+  ),
 });
 
 export function useEns(address?: string) {
@@ -19,12 +21,29 @@ export function useEns(address?: string) {
       return;
     }
 
+    let isMounted = true;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const resolveEns = async () => {
       setLoading(true);
       try {
-        const name = await publicClient.getEnsName({
+        // Wrap in timeout promise
+        const ensPromise = publicClient.getEnsName({
           address: address as `0x${string}`,
         });
+
+        const name = await Promise.race([
+          ensPromise,
+          new Promise<null>((_, reject) =>
+            setTimeout(
+              () => reject(new Error("ENS resolution timeout")),
+              4500
+            )
+          ),
+        ]);
+
+        if (!isMounted) return;
 
         if (name) {
           setEnsName(name);
@@ -33,7 +52,7 @@ export function useEns(address?: string) {
             const avatar = await publicClient.getEnsAvatar({
               name,
             });
-            if (avatar) {
+            if (avatar && isMounted) {
               setEnsAvatar(avatar);
             }
           } catch {
@@ -41,13 +60,24 @@ export function useEns(address?: string) {
           }
         }
       } catch (error) {
-        console.error("ENS resolution error:", error);
+        // Silently fail - ENS is optional, just show truncated address
+        if (isMounted) {
+          setEnsName(null);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     resolveEns();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
   }, [address]);
 
   return { ensName, ensAvatar, loading };
