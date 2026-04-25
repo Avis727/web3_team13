@@ -22,15 +22,16 @@ function serverError(message: string) {
 }
 
 export async function POST(req: Request) {
-  let body: { userAddress?: string; campaignId?: string };
+  let body: { userAddress?: string; campaignId?: string; rewardCents?: number };
   try {
-    body = (await req.json()) as { userAddress?: string; campaignId?: string };
+    body = (await req.json()) as { userAddress?: string; campaignId?: string; rewardCents?: number };
   } catch {
     return badRequest("Invalid JSON body.");
   }
 
   const userAddress = body.userAddress?.trim();
   const campaignId = body.campaignId?.trim();
+  const rewardCents = body.rewardCents;
 
   if (!userAddress || !/^0x[a-fA-F0-9]{40}$/.test(userAddress)) {
     return badRequest("Invalid userAddress.");
@@ -38,13 +39,16 @@ export async function POST(req: Request) {
   if (!campaignId) {
     return badRequest("campaignId is required.");
   }
+  if (rewardCents === undefined || rewardCents < 0) {
+    return badRequest("rewardCents is required and must be >= 0.");
+  }
 
   const privateKey = process.env.MASTER_WALLET_PRIVATE_KEY?.trim();
   const configuredMasterAddress =
     process.env.MASTER_WALLET_ADDRESS?.trim() ?? "0xC7Fd206cC5534700B06A760CeAd2A0602aF036b7";
   const tokenAddress = process.env.NZD_TOKEN_ADDRESS?.trim() ?? "0x63ee4b77d3912DC7bCe711c3BE7bF12D532F1853";
   const rpcUrl = process.env.EVM_RPC_URL?.trim() ?? process.env.NEXT_PUBLIC_BASE_RPC_URL?.trim() ?? "";
-  const payoutAmount = process.env.NZD_PAYOUT_AMOUNT?.trim() ?? "5";
+  const payoutAmount = (rewardCents / 100).toFixed(2);
   const fallbackTokenDecimals = Number.parseInt(process.env.NZD_TOKEN_DECIMALS?.trim() ?? "18", 10);
   const chainId = Number.parseInt(process.env.EVM_CHAIN_ID?.trim() ?? "84532", 10);
 

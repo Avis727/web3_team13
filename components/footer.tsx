@@ -15,7 +15,7 @@ export function Footer() {
           <div className="flex items-center gap-2 flex-wrap justify-center">
             <p className="text-xs text-muted-foreground">Inspired by</p>
             <a
-              href="https://www.newmoneyofficial.com"
+              href="https://www.getnew.money/"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline transition-colors"

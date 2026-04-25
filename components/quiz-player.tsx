@@ -198,6 +198,7 @@ export function QuizPlayer({ campaignId, rewardCents }: Props) {
         body: JSON.stringify({
           userAddress: address,
           campaignId,
+          rewardCents,
         }),
       });
 
