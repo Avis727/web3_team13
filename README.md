@@ -34,7 +34,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open https://web3team13-ii2894r6c-puranjay2006s-projects.vercel.app/?_vercel_share=k1lC4ozViHd9FU23ffradhcFYyYNjyuC
 
 ## Master wallet payout config
 
